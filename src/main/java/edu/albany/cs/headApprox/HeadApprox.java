@@ -24,37 +24,48 @@ import java.util.Set;
  * @author baojian bzhou6@albany.edu
  */
 public class HeadApprox {
-	/** 1. Graph G */
+	/** Graph G is split into 3 parts edges, c, and pi. */
+	/** the edges in graph G */
 	private ArrayList<Integer[]> edges;
-	/** 2. edge costs c (corresponding to to edges) */
+	/** the edge costs c corresponding to edges */
 	private ArrayList<Double> c;
-	/** 3. node prizes pi (corresponding to nodes 0,...,n-1) */
+	/** the node prizes pi corresponding to nodes {0,...,n-1} */
 	private ArrayList<Double> pi;
-	/** 4. number of connected components */
+	/** the number of connected components */
 	private int g;
-	/** 5. cost budget */
+	/** the cost budget */
 	private double C;
-	/** 6. delta value, which is a constant value */
+	/** the delta value, which is a constant value 1.0/169.0 */
 	private double delta;
 
+	/** additional parameters, may not be useful. */
 	private double cH;
 	private int[] trueSubGraph;
 	private int verboseLevel = 0;
 
+	/** the result forest that is returned by Tail algorithm. */
 	public F bestForest;
+	/** This parameter "valid" to show the result is valid. */
+	/** But, it may not be useful. */
 	public boolean valid;
 
+	/** This constructor is just for test. */
 	public HeadApprox() {
 	}
 
 	/**
-	 * A general input interface
+	 * A general input constructor.
 	 * 
 	 * @param edges
+	 *            the edges of graph G.
 	 * @param c
+	 *            the edge costs corresponding to the edges in G.
 	 * @param pi
+	 *            the node prize in pi
 	 * @param g
+	 *            the number of connected components in the result forest.
 	 * @param C
+	 *            the cost budget
 	 */
 	public HeadApprox(ArrayList<Integer[]> edges, ArrayList<Double> c, ArrayList<Double> pi, int g, double C) {
 
@@ -66,74 +77,90 @@ public class HeadApprox {
 		/** By Theorem 11 in this paper (p.20). */
 		this.delta = 1.0D / 169.0D; //
 		this.cH = Math.sqrt(1.0D / 14.0D);
-
 		this.checkInputValidation(edges, pi, c);
 		this.bestForest = run();
-
 		double[] b = new double[pi.size()];
 		for (int i = 0; i < pi.size(); i++) {
 			b[i] = pi.get(i);
 		}
-
 		if (this.checkEqu9Valid(b)) {
 			this.valid = true;
 		} else {
-			System.out.println("Head approximation is invalid ...");
+			String errorMes = "Head approximation is invalid ...";
+			System.out.println(errorMes);
 			System.exit(0);
 			this.valid = false;
 		}
 	}
 
 	/**
-	 * Note : This is for algorithm 1 only
+	 * This constructor is for Algorithm 3 only
 	 * 
 	 * @param edges
+	 *            the edges corresponding to WGM.
 	 * @param edgeCostsW
+	 *            the edge costs corresponding to WGM.
 	 * @param b
+	 *            the real vector that we want to estimate.
 	 * @param s
+	 *            the sparsity parameter.
 	 * @param g
+	 *            the number of connected components.
 	 * @param B
+	 *            the budget constraint, it is a real number.
+	 * @param trueSubGraph
+	 *            let it be null if you do not need it.
 	 */
 	public HeadApprox(ArrayList<Integer[]> edges, ArrayList<Double> edgeCostsW, double[] b, int s, int g, double B,
 			int[] trueSubGraph) {
 		this.edges = edges;
-		/**let c(e) = w(e) + (B / s)*/
-		this.c = new ArrayList<Double>();  
+		/** edge costs c, let c(e) = w(e) + (B / s) */
+		c = new ArrayList<Double>();
 		for (double w : edgeCostsW) {
-			this.c.add(w + B / (s * 1.0D));
+			c.add(w + B / (s * 1.0D));
 		}
 		/** let pi(i) = bi*bi */
-		this.pi = new ArrayList<Double>(); 
+		pi = new ArrayList<Double>();
+		if (b == null || b.length == 0) {
+			System.out.println("Error: vector z is null ...");
+			System.exit(0);
+		}
 		for (int i = 0; i < b.length; i++) {
-			this.pi.add(b[i] * b[i]);
+			pi.add(b[i] * b[i]);
 		}
 		/** let C = 2*B */
-		this.C = 2.0D * B;
-		/** By Theorem 11 in this paper (p.20). */
-		this.delta = 1.0D / 169.0D;
-		this.cH = Math.sqrt(1.0D / 14.0D);
+		C = 2.0D * B;
+		/** we set this constant value by Theorem 11 of that paper. */
+		delta = 1.0D / 169.0D;
 		this.g = g;
+		/** They may not be useful. */
+		cH = Math.sqrt(1.0D / 14.0D);
 		this.trueSubGraph = trueSubGraph;
 		/** we skip the validation of equation 9 */
 		this.trueSubGraph = null;
 		if (verboseLevel >= 1) {
-			// ------------------------------------------------------------------------------------
 			System.out.println("pi : ");
-			for (int k = 0; k < this.pi.size(); k++) {
-				System.out.format(",%.1f", this.pi.get(k));
+			for (int k = 0; k < pi.size(); k++) {
+				System.out.format(",%.1f", pi.get(k));
 			}
 			System.out.println();
-			System.out.println(" c(e) : " + this.c.toString());
-			System.out.println("B : " + B + " C : " + this.C + " delta : " + this.delta + " cH : " + this.cH);
-			// ------------------------------------------------------------------------------------
+			System.out.println("c(e): " + c.toString());
+			System.out.println("B: " + B);
+			System.out.println("C: " + C);
+			System.out.println("delta: " + delta);
+			System.out.println("cH: " + cH);
 		}
-		this.bestForest = run();
-		if (this.checkEqu9Valid(b)) {
-			this.valid = true;
+		if (!isParametersValid()) {
+			System.out.println("some parameters are not valid.");
+			System.exit(0);
+		}
+		bestForest = run();
+		if (checkEqu9Valid(b)) {
+			valid = true;
 		} else {
 			System.out.println("Head approximation is invalid ...");
 			System.exit(0);
-			this.valid = false;
+			valid = false;
 		}
 	}
 
@@ -175,64 +202,88 @@ public class HeadApprox {
 		}
 	}
 
+	private boolean isParametersValid() {
+
+		/** to check the graph is a connected graph. */
+		if (!isConnected(edges)) {
+			String errorMes = "the graph is not connected.";
+			System.out.println(errorMes);
+			return false;
+		}
+
+		/** check edgeCosts are valid */
+		for (double edge : c) {
+			if (edge <= 0.0D) {
+				new IllegalAccessException("the edge cost should not be non-positive ...");
+				System.exit(0);
+			}
+		}
+		return true;
+	}
+
 	/**
-	 * algorithm 3
+	 * This is the head algorithm part.
 	 *
-	 * @return F a forest
+	 * @return F a forest is returned by Head algorithm.
 	 */
 	private F run() {
-
-		double minPi = this.getMin();
-		BigDecimal lambdaR = new BigDecimal((2.0D * this.C) / minPi);
-		F forest = this.PCSF_GW(this.edges, this.c, this.getLambdaPi(lambdaR.doubleValue()), g);
+		/** the minimum positive prize entry in pi vector. */
+		double minPi = getMinPi();
+		/** lambda_r = the minimum binary search value. */
+		BigDecimal lambdaR = new BigDecimal((2.0D * C) / minPi);
+		F forest = PCSF_GW(edges, c, getLambdaPi(lambdaR.doubleValue()), g);
 		/** make sure we have the invariant c(Fr) > 2*C */
-		if (forest.costF <= 2.0D * this.C) {
+		if (forest.costF <= (2.0D * C)) {
 			return forest;
 		}
-
-		BigDecimal epsilon = new BigDecimal((this.delta * this.C) / (2.0D * this.getSigmaPi()));
-		BigDecimal lambdaL = new BigDecimal(1.0D / (4.0D * this.getSigmaPi()));
-
+		BigDecimal epsilon = new BigDecimal((delta * C) / (2.0D * getSigmaPi()));
+		BigDecimal lambdaL = new BigDecimal(1.0D / (4.0D * getSigmaPi()));
 		if (verboseLevel >= 1) {
-			System.out.println("costF : " + forest.costF + " ; 2*C: " + 2.0D * this.C);
-			System.out.println("min pi : " + minPi + " ; lambdaR : " + lambdaR.doubleValue());
-			System.out.println("epsilon : " + epsilon.doubleValue() + " ; lambdaL : " + lambdaL.doubleValue());
+			System.out.println("costF : " + forest.costF);
+			System.out.println("2*C: " + 2.0D * C);
+			System.out.println("min pi : " + minPi);
+			System.out.println("lambdaR : " + lambdaR.doubleValue());
+			System.out.println("epsilon : " + epsilon.doubleValue());
+			System.out.println("lambdaL : " + lambdaL.doubleValue());
 		}
-
 		int iter = 0;
 		/** Binary search over the Lagrange parameter lambda */
+		/** (lambda_r -lambda_l > epsilon) */
 		while (lambdaR.subtract(lambdaL).compareTo(epsilon) == 1) {
 			BigDecimal lambdaM = (lambdaL.add(lambdaR)).divide(new BigDecimal(2.0D));
-			forest = this.PCSF_GW(this.edges, this.c, this.getLambdaPi(lambdaM.doubleValue()), this.g);
-			if (forest.costF > 2.0D * this.C) {
+			forest = PCSF_GW(edges, c, getLambdaPi(lambdaM.doubleValue()), g);
+			if (forest.costF > (2.0D * C)) {
 				lambdaR = lambdaM;
 			} else {
 				lambdaL = lambdaM;
 			}
 			if (verboseLevel >= 1) {
 				iter++;
-				System.out.println("iteration : " + iter);
-				System.out.println("lambdaM : " + lambdaM);
-				System.out.println(" epsilon : " + epsilon + "lambda R: " + lambdaR + "lambda L : " + lambdaL
-						+ "lambda M : " + lambdaM);
+				System.out.println("iteration: " + iter);
+				System.out.println("lambdaM: " + lambdaM);
+				System.out.println("epsilon: " + epsilon);
+				System.out.println("lambdaR: " + lambdaR);
+				System.out.println("lambdaL: " + lambdaL);
+				System.out.println("lambdaM: " + lambdaM);
 			}
 		}
-
 		if (verboseLevel >= 1) {
-			System.out
-					.println("final lambdaL : " + lambdaL.doubleValue() + " final lambdaR : " + lambdaR.doubleValue());
-			System.out.println("total iterations : " + iter);
+			System.out.println("final lambdaL: " + lambdaL.doubleValue());
+			System.out.println("final lambdaR: " + lambdaR.doubleValue());
+			System.out.println("total iterations: " + iter);
 		}
-		F forestL = this.PCSF_GW(this.edges, this.c, this.getLambdaPi(lambdaL.doubleValue()), g);
-		F forestR = this.PCSF_GW(this.edges, this.c, this.getLambdaPi(lambdaR.doubleValue()), g);
+		F forestL = PCSF_GW(edges, c, getLambdaPi(lambdaL.doubleValue()), g);
+		F forestR = PCSF_GW(edges, c, getLambdaPi(lambdaR.doubleValue()), g);
 		if (verboseLevel >= 1) {
-			System.out.println("# nodes in L : " + forestL.nodesInF.size() + "# edges in L :" + forestL.edgesInF.size()
-					+ " # CC : " + forestL.gamma);
-			System.out.println("# nodes in R : " + forestR.nodesInF.size() + "# edges in R :" + forestR.edgesInF.size()
-					+ " # CC : " + forestR.gamma);
+			System.out.println("nodes in L : " + forestL.nodesInF.size());
+			System.out.println("edges in L :" + forestL.edgesInF.size());
+			System.out.println("CC : " + forestL.gamma);
+			System.out.println("nodes in R : " + forestR.nodesInF.size());
+			System.out.println("edges in R :" + forestR.edgesInF.size());
+			System.out.println("CC : " + forestR.gamma);
 		}
 		/** Prune the potentially large solution Fr */
-		F forestRPrime = this.pruneForest(forestR, this.c, this.pi, this.C);
+		F forestRPrime = pruneForest(forestR, c, pi, C);
 		if (forestL.prizeF >= forestRPrime.prizeF) {
 			return forestL;
 		} else {
@@ -243,11 +294,11 @@ public class HeadApprox {
 	/**
 	 * get total prize of this graph
 	 *
-	 * @return the \Sigma_{pi}
+	 * @return the summation of pi, that is \pi(G) = \sum_{i \in G} pi(i)
 	 */
 	private double getSigmaPi() {
 		double result = 0.0D;
-		for (double p : this.pi) {
+		for (double p : pi) {
 			result += p;
 		}
 		return result;
@@ -280,7 +331,6 @@ public class HeadApprox {
 				bS[i] = 0.0D;
 			}
 		}
-
 		boolean flag = false;
 		if (bS == null || bSPrime == null || bS.length == 0 || bSPrime.length == 0) {
 			return flag;
@@ -482,19 +532,15 @@ public class HeadApprox {
 	}
 
 	/**
-	 * get minimum value of pi vector
+	 * get minimum positive entry of pi vector
 	 *
-	 * @return
+	 * @return the minimum positive prize entry in pi vector.
 	 */
-	private double getMin() {
+	private double getMinPi() {
 		double minPi = Double.MAX_VALUE;
-		if (this.pi == null || this.pi.isEmpty()) {
-			System.out.println("Error : pi is null ...");
-			System.exit(0);
-		}
-		for (int i = 0; i < this.pi.size(); i++) {
-			if (this.pi.get(i) < minPi && this.pi.get(i) > 0.0D) {
-				minPi = this.pi.get(i);
+		for (int i = 0; i < pi.size(); i++) {
+			if (pi.get(i) < minPi && pi.get(i) > 0.0D) {
+				minPi = pi.get(i);
 			}
 		}
 		return minPi;
@@ -508,8 +554,8 @@ public class HeadApprox {
 	 */
 	private ArrayList<Double> getLambdaPi(double lambda) {
 		ArrayList<Double> piLambda = new ArrayList<Double>();
-		for (int i = 0; i < this.pi.size(); i++) {
-			piLambda.add(lambda * this.pi.get(i));
+		for (int i = 0; i < pi.size(); i++) {
+			piLambda.add(lambda * pi.get(i));
 		}
 		return piLambda;
 	}
@@ -518,14 +564,14 @@ public class HeadApprox {
 	 * The PCSF algorithm of GW pruning version
 	 *
 	 * @param edges
-	 *            the graph G
+	 *            the edges of the graph G
 	 * @param edgeCosts
-	 *            the edge costs in graph
+	 *            the edge costs in the graph
 	 * @param pi
-	 *            prizes
+	 *            the prize for the FCSF.
 	 * @param g
-	 *            number of connected components
-	 * @return the forest of pcsf algorithm
+	 *            the number of connected components
+	 * @return the corresponding forest F of pcsf algorithm
 	 */
 	public F PCSF_GW(ArrayList<Integer[]> edges, ArrayList<Double> edgeCosts, ArrayList<Double> pi, int g) {
 
@@ -536,24 +582,12 @@ public class HeadApprox {
 				System.exit(0);
 			}
 		}
-		/** check edgeCosts are valid */
-		for (double edge : edgeCosts) {
-			if (edge <= 0.0D) {
-				new IllegalAccessException("the edge cost should not be non-positive ...");
-				System.exit(0);
-			}
-		}
-		/** make sure the graph is connected */
-		if (!isConnected(edges)) {
-			System.out.println("the graph is not connected ...");
-			System.exit(0);
-		}
-		FastPCST pcstFast = new FastPCST(edges, pi, edgeCosts, FastPCST.kNoRoot, g,
-				FastPCST.PruningMethod.kStrongPruning, -1);
+		FastPCST pcstFast = new FastPCST(edges, pi, edgeCosts, FastPCST.kNoRoot, g, -1);
 		ArrayList<Integer> nodesInF = null;
 		ArrayList<Integer> resultEdges = null;
-		if (!pcstFast.run(resultEdges, nodesInF)) {
-			new IllegalArgumentException("Error : Algorithm returned false. There must be an error. \n");
+		if (!pcstFast.run()) {
+			String errorMes = "Error : There must be an error. \n";
+			System.out.println(errorMes);
 			System.exit(0);
 		} else {
 			/** indexes of edges */
@@ -568,37 +602,33 @@ public class HeadApprox {
 				costsInF.add(edgeCosts.get(i));
 			}
 		}
-
-		/**
-		 * Note: the prizes should be the original prize not local local
-		 * variable pi
-		 */
+		/** the prizes should be the original prize */
 		ArrayList<Double> piInF = new ArrayList<Double>();
 		for (int i : nodesInF) {
-			piInF.add(this.pi.get(i));
+			piInF.add(pi.get(i));
 		}
 		double totalPrizes = 0.0D;
-		for (int i = 0; i < this.pi.size(); i++) {
-			totalPrizes += this.pi.get(i);
+		for (int i = 0; i < pi.size(); i++) {
+			totalPrizes += pi.get(i);
 		}
-
 		if (verboseLevel >= 2) {
-			System.out.println("number of nodes in F : " + nodesInF.size());
-			System.out.println("nodesInF : " + nodesInF.toString());
-			System.out.print("edges in F : ");
+			System.out.println("number of nodes in F: " + nodesInF.size());
+			System.out.println("nodesInF: " + nodesInF.toString());
+			System.out.println("edgesInF: ");
 			for (Integer[] edge : edgesInF) {
 				System.out.println("," + "[" + edge[0] + "," + edge[1] + "]");
 			}
 			System.out.println();
 		}
-
 		/** the nodes, prizes, edges and costs must be consistent */
 		F forest = new F(nodesInF, edgesInF, costsInF, piInF, totalPrizes);
 		if (verboseLevel >= 2) {
-			System.out.println("forest.gamma : " + forest.gamma + " ; g : " + g);
+			System.out.println("forest.gamma: " + forest.gamma);
+			System.out.println("g: " + g);
 		}
 		if (forest.gamma != g) {
-			System.out.println("Head Approximation Error : the number of trees in forest does not match with g ...");
+			String errorMes = "Error: # of trees in forest is not equal to g !!";
+			System.out.println(errorMes);
 			System.exit(0);
 		}
 		return forest;
@@ -805,7 +835,6 @@ public class HeadApprox {
 					return o2.compareTo(o1);
 				}
 			});
-
 			/** check duplicated nodes */
 			HashSet<Integer> allnodes = new HashSet<Integer>();
 			for (Tree tree : trees) {
@@ -818,7 +847,6 @@ public class HeadApprox {
 					}
 				}
 			}
-
 			return this.trees;
 		}
 
@@ -872,7 +900,6 @@ public class HeadApprox {
 		public final double costTree;
 		public final double prizeTree;
 		public final double ratio;
-
 		/** adj for path computing */
 		public final HashMap<Integer, HashMap<Integer, Double>> adj;
 

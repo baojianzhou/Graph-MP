@@ -22,7 +22,7 @@ public class FastPCSF {
         FastPCST pcstFast = new FastPCST(edges, pi, edgeCosts, FastPCST.kNoRoot, g, FastPCST.PruningMethod.kStrongPruning, -1);
         ArrayList<Integer> resultNodes = null;
         ArrayList<Integer> resultEdges = null;
-        if (!pcstFast.run(resultEdges, resultNodes)) {
+        if (!pcstFast.run()) {
             System.out.println("Error : Algorithm returned false. There must be an error. \n");
             System.exit(0);
         } else {

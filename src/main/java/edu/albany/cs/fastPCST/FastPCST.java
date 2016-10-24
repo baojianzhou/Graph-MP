@@ -6,8 +6,8 @@ import java.util.HashMap;
 /**
  * FastPCST algorithm based on the following paper
  * 
- * Hegde, Chinmay, Piotr Indyk, and Ludwig Schmidt.
- * "A fast, adaptive variant of the goemans-williamson scheme for the prize-collecting steiner tree problem."
+ * Hegde, Chinmay, Piotr Indyk, and Ludwig Schmidt. "A fast, adaptive variant of
+ * the goemans-williamson scheme for the prize-collecting steiner tree problem."
  * Workshop of the 11th DIMACS Implementation Challenge. URL https://people.
  * csail. mit. edu/ludwigs/papers/dimacs14_fastpcst. pdf. 2014.
  * 
@@ -94,6 +94,11 @@ public class FastPCST {
 	private ArrayList<Integer> build_phase1_node_set_first_P;
 	private ArrayList<Integer> build_phase2_node_set_first_P;
 	private ArrayList<Integer> build_phase3_node_set_first_P;
+
+	public FastPCST(ArrayList<Integer[]> edges, ArrayList<Double> prizes, ArrayList<Double> costs, int root,
+			int target_num_active_clusters, int verbostiy_level) {
+		this(edges, prizes, costs, root, target_num_active_clusters, PruningMethod.kStrongPruning, -1);
+	}
 
 	/**
 	 * @param edges
@@ -400,10 +405,10 @@ public class FastPCST {
 		}
 	}
 
-	public boolean run(ArrayList<Integer> result_nodes, ArrayList<Integer> result_edges) {
+	public boolean run() {
 
-		result_nodes = new ArrayList<Integer>();
-		result_edges = new ArrayList<Integer>();
+		ArrayList<Integer> result_nodes = new ArrayList<Integer>();
+		ArrayList<Integer> result_edges = new ArrayList<Integer>();
 		if (root >= 0 && targetNumActiveClusters > 0) {
 			System.out.println("Error: target_num_active_clusters must be 0 in the rooted case.\n");
 			System.exit(0);
@@ -789,8 +794,7 @@ public class FastPCST {
 			}
 			finalComponentLabel = resize(finalComponentLabel, prizes.size(), -1);
 			rootComponentIndex = -1;
-			strongPruningParent = resize(strongPruningParent, prizes.size(),
-					new Pair<Integer, Double>(-1, -1.0d));
+			strongPruningParent = resize(strongPruningParent, prizes.size(), new Pair<Integer, Double>(-1, -1.0d));
 			strongPruningPayoff = resize(strongPruningPayoff, prizes.size(), -1.0);
 			for (int ii = 0; ii < phase2Result.size(); ++ii) {
 				int cur_node_index = edges.get(phase2Result.get(ii))[0];
@@ -1047,228 +1051,225 @@ public class FastPCST {
 			return getMappings().get(value);
 		}
 	}
-	
-	
+
 	private ArrayList<EdgeInfo> resize(ArrayList<EdgeInfo> arr, int size, EdgeInfo val) {
 
-        if (arr == null || arr.equals(null)) {
-            arr = new ArrayList<EdgeInfo>();
-        }
+		if (arr == null || arr.equals(null)) {
+			arr = new ArrayList<EdgeInfo>();
+		}
 
-        if (size < 0) {
-            new IllegalArgumentException("size should be larger than 0");
-            System.exit(0);
-            return null;
-        } else if (size == 0) {
-            return new ArrayList<EdgeInfo>();
-        }
+		if (size < 0) {
+			new IllegalArgumentException("size should be larger than 0");
+			System.exit(0);
+			return null;
+		} else if (size == 0) {
+			return new ArrayList<EdgeInfo>();
+		}
 
-        int newSize = size - arr.size();
-        if (newSize < 0) {
-            for (int i = 0; i < Math.abs(newSize); i++) {
-                arr.remove(arr.size() - 1);
-            }
-            return arr;
-        } else if (newSize == 0) {
-            return arr;
-        } else if (newSize > 0) {
-            for (int i = 0; i < newSize; i++) {
-                arr.add(new EdgeInfo());
-            }
-            return arr;
-        }
-        return arr;
-    }
+		int newSize = size - arr.size();
+		if (newSize < 0) {
+			for (int i = 0; i < Math.abs(newSize); i++) {
+				arr.remove(arr.size() - 1);
+			}
+			return arr;
+		} else if (newSize == 0) {
+			return arr;
+		} else if (newSize > 0) {
+			for (int i = 0; i < newSize; i++) {
+				arr.add(new EdgeInfo());
+			}
+			return arr;
+		}
+		return arr;
+	}
 
 	private ArrayList<Integer> resize(ArrayList<Integer> arr, int size, Integer val) {
 
-        if (arr == null || arr.equals(null)) {
-            arr = new ArrayList<Integer>();
-        }
+		if (arr == null || arr.equals(null)) {
+			arr = new ArrayList<Integer>();
+		}
 
-        if (size < 0) {
-            new IllegalArgumentException("size should be larger than 0");
-            System.exit(0);
-            return null;
-        } else if (size == 0) {
-            return new ArrayList<Integer>();
-        }
+		if (size < 0) {
+			new IllegalArgumentException("size should be larger than 0");
+			System.exit(0);
+			return null;
+		} else if (size == 0) {
+			return new ArrayList<Integer>();
+		}
 
-        int newSize = size - arr.size();
-        if (newSize < 0) {
-            for (int i = 0; i < Math.abs(newSize); i++) {
-                arr.remove(arr.size() - 1);
-            }
-            return arr;
-        } else if (newSize == 0) {
-            return arr;
-        } else if (newSize > 0) {
-            for (int i = 0; i < newSize; i++) {
-                arr.add(val);
-            }
-            return arr;
-        }
-        return arr;
-    }
+		int newSize = size - arr.size();
+		if (newSize < 0) {
+			for (int i = 0; i < Math.abs(newSize); i++) {
+				arr.remove(arr.size() - 1);
+			}
+			return arr;
+		} else if (newSize == 0) {
+			return arr;
+		} else if (newSize > 0) {
+			for (int i = 0; i < newSize; i++) {
+				arr.add(val);
+			}
+			return arr;
+		}
+		return arr;
+	}
 
-    private ArrayList<Boolean> resize(ArrayList<Boolean> arr, int size, Boolean val) {
+	private ArrayList<Boolean> resize(ArrayList<Boolean> arr, int size, Boolean val) {
 
-        if (arr == null || arr.equals(null)) {
-            arr = new ArrayList<Boolean>();
-        }
+		if (arr == null || arr.equals(null)) {
+			arr = new ArrayList<Boolean>();
+		}
 
-        if (size < 0) {
-            new IllegalArgumentException("size should be larger than 0");
-            System.exit(0);
-            return null;
-        } else if (size == 0) {
-            return new ArrayList<Boolean>();
-        }
+		if (size < 0) {
+			new IllegalArgumentException("size should be larger than 0");
+			System.exit(0);
+			return null;
+		} else if (size == 0) {
+			return new ArrayList<Boolean>();
+		}
 
-        int newSize = size - arr.size();
-        if (newSize < 0) {
-            for (int i = 0; i < Math.abs(newSize); i++) {
-                arr.remove(arr.size() - 1);
-            }
-            return arr;
-        } else if (newSize == 0) {
-            return arr;
-        } else if (newSize > 0) {
-            for (int i = 0; i < newSize; i++) {
-                arr.add(val);
-            }
-            return arr;
-        }
-        return arr;
-    }
+		int newSize = size - arr.size();
+		if (newSize < 0) {
+			for (int i = 0; i < Math.abs(newSize); i++) {
+				arr.remove(arr.size() - 1);
+			}
+			return arr;
+		} else if (newSize == 0) {
+			return arr;
+		} else if (newSize > 0) {
+			for (int i = 0; i < newSize; i++) {
+				arr.add(val);
+			}
+			return arr;
+		}
+		return arr;
+	}
 
+	private ArrayList<Pair<Integer, Double>> resize(ArrayList<Pair<Integer, Double>> arr, int size,
+			Pair<Integer, Double> pair) {
 
-    private ArrayList<Pair<Integer, Double>> resize(
-            ArrayList<Pair<Integer, Double>> arr, int size, Pair<Integer, Double> pair) {
+		if (arr == null || arr.equals(null)) {
+			arr = new ArrayList<Pair<Integer, Double>>();
+		}
 
-        if (arr == null || arr.equals(null)) {
-            arr = new ArrayList<Pair<Integer, Double>>();
-        }
+		if (size < 0) {
+			new IllegalArgumentException("size should be larger than 0");
+			System.exit(0);
+			return null;
+		} else if (size == 0) {
+			return new ArrayList<Pair<Integer, Double>>();
+		}
 
-        if (size < 0) {
-            new IllegalArgumentException("size should be larger than 0");
-            System.exit(0);
-            return null;
-        } else if (size == 0) {
-            return new ArrayList<Pair<Integer, Double>>();
-        }
+		int newSize = size - arr.size();
+		if (newSize < 0) {
+			for (int i = 0; i < Math.abs(newSize); i++) {
+				arr.remove(arr.size() - 1);
+			}
+			return arr;
+		} else if (newSize == 0) {
+			return arr;
+		} else if (newSize > 0) {
+			for (int i = 0; i < newSize; i++) {
+				arr.add(pair);
+			}
+			return arr;
+		}
+		return arr;
+	}
 
-        int newSize = size - arr.size();
-        if (newSize < 0) {
-            for (int i = 0; i < Math.abs(newSize); i++) {
-                arr.remove(arr.size() - 1);
-            }
-            return arr;
-        } else if (newSize == 0) {
-            return arr;
-        } else if (newSize > 0) {
-            for (int i = 0; i < newSize; i++) {
-                arr.add(pair);
-            }
-            return arr;
-        }
-        return arr;
-    }
+	private ArrayList<ArrayList<Pair<Integer, Double>>> resize(ArrayList<ArrayList<Pair<Integer, Double>>> arr,
+			int size, ArrayList<Pair<Integer, Double>> pair) {
 
-    private ArrayList<ArrayList<Pair<Integer, Double>>> resize(
-            ArrayList<ArrayList<Pair<Integer, Double>>> arr,
-            int size, ArrayList<Pair<Integer, Double>> pair) {
+		if (arr == null || arr.equals(null)) {
+			arr = new ArrayList<ArrayList<Pair<Integer, Double>>>();
+		}
 
-        if (arr == null || arr.equals(null)) {
-            arr = new ArrayList<ArrayList<Pair<Integer, Double>>>();
-        }
+		if (size < 0) {
+			new IllegalArgumentException("size should be larger than 0");
+			System.exit(0);
+			return null;
+		} else if (size == 0) {
+			return new ArrayList<ArrayList<Pair<Integer, Double>>>();
+		}
 
-        if (size < 0) {
-            new IllegalArgumentException("size should be larger than 0");
-            System.exit(0);
-            return null;
-        } else if (size == 0) {
-            return new ArrayList<ArrayList<Pair<Integer, Double>>>();
-        }
+		int newSize = size - arr.size();
+		if (newSize < 0) {
+			for (int i = 0; i < Math.abs(newSize); i++) {
+				arr.remove(arr.size() - 1);
+			}
+			return arr;
+		} else if (newSize == 0) {
+			return arr;
+		} else if (newSize > 0) {
+			for (int i = 0; i < newSize; i++) {
+				arr.add(new ArrayList<Pair<Integer, Double>>());
+			}
+			return arr;
+		}
+		return arr;
+	}
 
-        int newSize = size - arr.size();
-        if (newSize < 0) {
-            for (int i = 0; i < Math.abs(newSize); i++) {
-                arr.remove(arr.size() - 1);
-            }
-            return arr;
-        } else if (newSize == 0) {
-            return arr;
-        } else if (newSize > 0) {
-            for (int i = 0; i < newSize; i++) {
-                arr.add(new ArrayList<Pair<Integer, Double>>());
-            }
-            return arr;
-        }
-        return arr;
-    }
+	private ArrayList<Double> resize(ArrayList<Double> arr, int size, Double val) {
 
-    private ArrayList<Double> resize(ArrayList<Double> arr, int size, Double val) {
+		if (arr == null || arr.equals(null)) {
+			arr = new ArrayList<Double>();
+		}
 
-        if (arr == null || arr.equals(null)) {
-            arr = new ArrayList<Double>();
-        }
+		if (size < 0) {
+			new IllegalArgumentException("size should be larger than 0");
+			System.exit(0);
+			return null;
+		} else if (size == 0) {
+			return new ArrayList<Double>();
+		}
 
-        if (size < 0) {
-            new IllegalArgumentException("size should be larger than 0");
-            System.exit(0);
-            return null;
-        } else if (size == 0) {
-            return new ArrayList<Double>();
-        }
+		int newSize = size - arr.size();
+		if (newSize < 0) {
+			for (int i = 0; i < Math.abs(newSize); i++) {
+				arr.remove(arr.size() - 1);
+			}
+			return arr;
+		} else if (newSize == 0) {
+			return arr;
+		} else if (newSize > 0) {
+			for (int i = 0; i < newSize; i++) {
+				arr.add(val);
+			}
+			return arr;
+		}
+		return arr;
+	}
 
-        int newSize = size - arr.size();
-        if (newSize < 0) {
-            for (int i = 0; i < Math.abs(newSize); i++) {
-                arr.remove(arr.size() - 1);
-            }
-            return arr;
-        } else if (newSize == 0) {
-            return arr;
-        } else if (newSize > 0) {
-            for (int i = 0; i < newSize; i++) {
-                arr.add(val);
-            }
-            return arr;
-        }
-        return arr;
-    }
+	private ArrayList<EdgePart> resize(ArrayList<EdgePart> arr, int size, EdgePart val) {
 
-    private ArrayList<EdgePart> resize(ArrayList<EdgePart> arr, int size, EdgePart val) {
+		if (arr == null || arr.equals(null)) {
+			arr = new ArrayList<EdgePart>();
+		}
 
-        if (arr == null || arr.equals(null)) {
-            arr = new ArrayList<EdgePart>();
-        }
+		if (size < 0) {
+			new IllegalArgumentException("size should be larger than 0");
+			System.exit(0);
+			return null;
+		} else if (size == 0) {
+			return new ArrayList<EdgePart>();
+		}
 
-        if (size < 0) {
-            new IllegalArgumentException("size should be larger than 0");
-            System.exit(0);
-            return null;
-        } else if (size == 0) {
-            return new ArrayList<EdgePart>();
-        }
-
-        int newSize = size - arr.size();
-        if (newSize < 0) {
-            for (int i = 0; i < Math.abs(newSize); i++) {
-                arr.remove(arr.size() - 1);
-            }
-            return arr;
-        } else if (newSize == 0) {
-            return arr;
-        } else if (newSize > 0) {
-            for (int i = 0; i < newSize; i++) {
-                arr.add(new EdgePart());
-            }
-            return arr;
-        }
-        return arr;
-    }
+		int newSize = size - arr.size();
+		if (newSize < 0) {
+			for (int i = 0; i < Math.abs(newSize); i++) {
+				arr.remove(arr.size() - 1);
+			}
+			return arr;
+		} else if (newSize == 0) {
+			return arr;
+		} else if (newSize > 0) {
+			for (int i = 0; i < newSize; i++) {
+				arr.add(new EdgePart());
+			}
+			return arr;
+		}
+		return arr;
+	}
 
 	public class Statistics {
 		public long total_num_edge_events;
