@@ -210,12 +210,11 @@ public class HeadApprox {
 			System.out.println(errorMes);
 			return false;
 		}
-
 		/** check edgeCosts are valid */
 		for (double edge : c) {
 			if (edge <= 0.0D) {
-				new IllegalAccessException("the edge cost should not be non-positive ...");
-				System.exit(0);
+				System.out.println("the edge cost should be positive ...");
+				return false;
 			}
 		}
 		return true;

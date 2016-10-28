@@ -689,7 +689,6 @@ public class FastPCST {
 				}
 			}
 		}
-
 		// if there is no pruning needed, just return the phase 1's result
 		if (pruning == PruningMethod.kNoPruning) {
 			build_phase1_node_set(phase1_result, result_nodes);
@@ -834,13 +833,10 @@ public class FastPCST {
 				int uu = edges.get(cur_edge_index)[0];
 				int vv = edges.get(cur_edge_index)[1];
 				if (nodeDeleted.get(uu) || nodeDeleted.get(vv)) {
-					//////////////////////////////////////////
 					if (verbosity_level >= 2) {
 						System.out.println("Not keeping edge " + cur_edge_index + " (" + uu + ", " + vv
 								+ ") because at least one endpoint already deleted\n");
-						// output_function(output_buffer);
 					}
-					//////////////////////////////////////////
 				} else {
 					phase3_result.add(cur_edge_index);
 				}
@@ -916,9 +912,8 @@ public class FastPCST {
 					if (next_payoff <= 0.0) {
 						if (mark_as_deleted) {
 							if (verbosity_level >= 2) {
-								System.out.format(
-										"Subtree starting at %d has a nonpositive contribution of %6f, pruning (good side: %d)\n",
-										next_node_index, next_payoff, cur_node_index);
+								String mes = "Subtree starting at %d has a nonpositive contribution of %6f, pruning (good side: %d)\n";
+								System.out.format(mes, next_node_index, next_payoff, cur_node_index);
 							}
 							mark_nodes_as_deleted(next_node_index, cur_node_index);
 						}
