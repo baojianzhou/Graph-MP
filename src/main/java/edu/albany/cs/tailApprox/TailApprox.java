@@ -281,6 +281,10 @@ public class TailApprox {
             if (changed_R && changed_L) {
                 break;
             } else {
+                F tmp_f = PCSF_GW(edges, getCostsLambda(lambdaL), prizesPi, g);
+                if (tmp_f.nodesInF.size() < (2.0 * this.nu + this.g)) {
+                    return tmp_f;
+                }
                 lambdaR = 0.0D;
                 lambdaL = 2.0D * lambdaUnit;
                 lambdaUnit = lambdaL;
