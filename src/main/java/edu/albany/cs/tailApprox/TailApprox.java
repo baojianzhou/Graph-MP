@@ -43,6 +43,10 @@ public class TailApprox {
      */
     private final double C;
     /**
+     * total sparsity
+     */
+    private final int s;
+    /**
      * the constant parameter, which is > 2.
      */
     private final double nu;
@@ -89,6 +93,7 @@ public class TailApprox {
         this.edgeCostsc = edgeCostsc;
         this.prizesPi = prizesPi;
         this.g = g;
+        this.s = -1;
         this.C = costBudgetC;
         this.nu = nu;
         this.delta = delta;
@@ -160,6 +165,7 @@ public class TailApprox {
             /** the prizes of pi equals to <z,z> */
             prizesPi.add(z[i] * z[i]);
         }
+        this.s = s;
         this.g = g;
         /** C = 2.0*B in algorithm 1 */
         this.C = 2.0D * B;
@@ -282,7 +288,7 @@ public class TailApprox {
                 break;
             } else {
                 F tmp_f = PCSF_GW(edges, getCostsLambda(lambdaL), prizesPi, g);
-                if (tmp_f.nodesInF.size() < (2.0 * this.nu + this.g)) {
+                if (tmp_f.nodesInF.size() < (2.0 * this.s * this.nu + this.g)) {
                     return tmp_f;
                 }
                 lambdaR = 0.0D;
